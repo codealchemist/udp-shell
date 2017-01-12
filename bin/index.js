@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict'
 
 // load params and validate them
@@ -92,7 +93,6 @@ function onCommandLineInput (callback, nodeName) {
 //------------------------------------------------------------------------
 
 function hasInvalidParams (params) {
-  console.log('- params', params)
   return (!params.host && !params['_'].length)
 }
 
