@@ -3,10 +3,6 @@ const UdpNode = require('udp-node')
 const readline = require('readline')
 
 module.exports = class Guest {
-  constructor (host) {
-    
-  }
-
   initPrompt (hostname) {
     this.rl = readline.createInterface({
       input: process.stdin,
@@ -16,7 +12,7 @@ module.exports = class Guest {
     this.rl.prompt()
   }
 
-  connect () {
+  connect (hostname) {
     const guest = new UdpNode()
     guest
       .setLogLevel('error')
@@ -25,8 +21,14 @@ module.exports = class Guest {
         type: 'client',
         port: 3025
       })
-      .broadcast({port: 3024})
+      .broadcast({
+        port: 3024,
+        filter: ['host']
+      })
       .onNode((data, rinfo) => {
+        // only connect to requested hostname
+        if (data.node.name !== hostname) return
+
         console.log('--- CONNECTED TO HOST: ', data)
 
         // initialize command line prompt
