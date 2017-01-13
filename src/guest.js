@@ -29,7 +29,10 @@ module.exports = class Guest {
         // only connect to requested hostname
         if (data.node.name !== hostname) return
 
-        console.log('--- CONNECTED TO HOST: ', data)
+        console.log('--- CONNECTED TO HOST')
+        console.log(data)
+        console.log('-'.repeat(80))
+        console.log()
 
         // initialize command line prompt
         this.initPrompt(data.node.name)
