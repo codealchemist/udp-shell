@@ -36,7 +36,7 @@ function startHost () {
           type: 'response',
           address: rinfo.address,
           port: rinfo.port,
-          text: err || stdout || stderr
+          text: stdout || stderr
         })
       })
     })
@@ -72,7 +72,6 @@ function startGuest () {
 }
 
 function onCommandLineInput (callback, nodeName) {
-  console.log('-- nodeName', nodeName)
   rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
