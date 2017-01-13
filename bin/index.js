@@ -1,92 +1,27 @@
 #!/usr/bin/env node
 'use strict'
+const fs = require('fs')
+const path = require('path')
+
+// print ascii art
+const artFile = path.join(__dirname, '/../ascii-art.txt')
+const art = fs.readFileSync(artFile, 'utf8')
+console.info(art)
 
 // load params and validate them
 const params = require('minimist')(process.argv.slice(2))
 if (hasInvalidParams(params)) return showUsage()
 
-const UdpNode = require('udp-node')
-const readline = require('readline')
-let rl
-const exec = require('child_process').exec
-
-// start in host or guest mode
 if (params.host) {
-  startHost()
+  // start host
+  const Host = require(path.join(__dirname, '../src/host'))
+  const host = new Host(params.host)
+  host.start()
 } else {
-  startGuest()
-}
-
-//------------------------------------------------------------------------
-
-function startHost () {
-  const host = new UdpNode()
-  host
-    .setLogLevel('info')
-    .set({
-      name: params.host,
-      type: 'host'
-    })
-    .on('command', (message, rinfo) => {
-      console.log('-- host got command', message)
-      const command = message.text
-
-      exec(command, (err, stdout, stderr) => {
-        host.send({
-          type: 'response',
-          address: rinfo.address,
-          port: rinfo.port,
-          text: stdout || stderr
-        })
-      })
-    })
-}
-
-function startGuest () {
-  const guest = new UdpNode()
-  guest
-    .setLogLevel('error')
-    .set({
-      name: 'client',
-      type: 'client',
-      port: 3025
-    })
-    .broadcast({port: 3024})
-    .onNode((data, rinfo) => {
-      console.log('--- CONNECTED TO HOST: ', data)
-
-      onCommandLineInput((text) => {
-        guest.send({
-          type: 'command',
-          address: rinfo.address,
-          port: rinfo.port,
-          text: text
-        })
-      }, data.node.name)
-    })
-    .on('response', (message, rinfo) => {
-      // console.log('-- got host response', message)
-      console.log(message.text)
-      rl.prompt()
-    })
-}
-
-function onCommandLineInput (callback, nodeName) {
-  rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    prompt: `UDP-SHELL @ ${nodeName}> `
-  })
-  rl.prompt()
-
-  rl.on('line', (line) => {
-    const text = line.trim()
-    callback(text)
-    // rl.prompt();
-  }).on('close', () => {
-    console.log('Have a great day!');
-    process.exit(0);
-  })
+  // connect guest
+  const Guest = require(path.join(__dirname, '../src/guest'))
+  const guest = new Guest()
+  guest.connect(params._[0])
 }
 
 //------------------------------------------------------------------------
@@ -100,10 +35,10 @@ function showUsage () {
     USAGE:
 
     Start host:
-      node index.js --host six
+      udp-shell --host six
 
     Connect guest:
-      node index.js six
+      udp-shell six
   `)
 }
 
